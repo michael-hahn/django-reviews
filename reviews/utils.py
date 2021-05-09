@@ -73,7 +73,7 @@ def get_average_for_instance(instance):
     avg = query.aggregate(Avg('score'))  # returns a dict {score__avg: X}
     count = query.count()   # returns an integer count
     # !!!SPLICE: Demonstrate cache zset
-    cache_key = "%s-ratings-%s" % (settings.CACHE_MIDDLEWARE_KEY_PREFIX, ctype.name)
+    cache_key = "%s-ratings-%s" % (settings.CACHE_MIDDLEWARE_KEY_PREFIX, content_type.name)
     cache.zadd(cache_key, avg["score__avg"], SpliceStr(instance.name))
     return avg["score__avg"], count
 
