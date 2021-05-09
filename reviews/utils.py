@@ -4,6 +4,11 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import connection
 from django.db.models import Count, Avg
 
+# !!!SPLICE
+from django.core.cache import cache
+from django.conf import settings
+from django.splice.splicetypes import SpliceStr
+
 # review imports
 from reviews.models import Review
 
@@ -59,10 +64,18 @@ def get_average_for_instance(instance):
     Returns (average, amount)
     """
     content_type = ContentType.objects.get_for_model(instance)
-    query = Review.objects.filter(content_type=content_type.id, content_id=instance.id, active=True).aggregate(
-        Avg('score'), Count('id'))
-
-    return query.get('score__avg'), query.get('id__count')
+    # !!!SPLICE: Rewrite the query with cache
+    # query = Review.objects.filter(content_type=content_type.id, content_id=instance.id, active=True).aggregate(
+    #     Avg('score'), Count('id'))
+    #
+    # return query.get('score__avg'), query.get('id__count')
+    query = Review.objects.active().filter(content_type=content_type.id, content_id=instance.id, active=True)
+    avg = query.aggregate(Avg('score'))  # returns a dict {score__avg: X}
+    count = query.count()   # returns an integer count
+    # !!!SPLICE: Demonstrate cache zset
+    cache_key = "%s-ratings-%s" % (settings.CACHE_MIDDLEWARE_KEY_PREFIX, ctype.name)
+    cache.zadd(cache_key, avg["score__avg"], SpliceStr(instance.name))
+    return avg["score__avg"], count
 
 
 def has_rated(request, instance):
