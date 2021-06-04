@@ -74,8 +74,12 @@ def get_average_for_instance(instance):
     count = query.count()   # returns an integer count
     # !!!SPLICE: Demonstrate cache zset
     cache_key = "%s-ratings-%s" % (settings.CACHE_MIDDLEWARE_KEY_PREFIX, content_type.name)
-    cache.zadd(cache_key, avg["score__avg"], SpliceStr(instance.name))
+    # !!!SPLICE: No need to cache if there is no review score for a product
+    if avg["score__avg"] is not None:
+        cache.zadd(cache_key, avg["score__avg"], SpliceStr(instance.slug))
+    # avgs = cache.zrange(cache_key, 0, 5, withscores=True)
     return avg["score__avg"], count
+    # return avgs[0][1], count
 
 
 def has_rated(request, instance):
