@@ -5,7 +5,7 @@ from django.db import connection
 from django.db.models import Count, Avg
 
 # !!!SPLICE
-from django.core.cache import cache
+from django.core.cache import caches
 from django.conf import settings
 from django.splice.splicetypes import SpliceStr
 
@@ -75,10 +75,13 @@ def get_average_for_instance(instance):
     # !!!SPLICE: Demonstrate cache zset
     cache_key = "%s-ratings-%s" % (settings.CACHE_MIDDLEWARE_KEY_PREFIX, content_type.name)
     # !!!SPLICE: No need to cache if there is no review score for a product
-    if avg["score__avg"] is not None:
-        cache.zadd(cache_key, avg["score__avg"], SpliceStr(instance.slug))
+    avg = avg["score__avg"]
+    if avg is not None:
+        caches['splice'].zadd(cache_key, avg, SpliceStr(instance.slug, taints=avg.taints))
+        # caches['splice'].hadd(cache_key, SpliceStr(instance.slug, taints=avg.taints), avg)
+        # caches['splice'].tadd(cache_key, SpliceStr(instance.slug, taints=avg.taints), avg)
     # avgs = cache.zrange(cache_key, 0, 5, withscores=True)
-    return avg["score__avg"], count
+    return avg, count
     # return avgs[0][1], count
 
 

@@ -39,7 +39,10 @@ class Review(models.Model):
     # comment = models.TextField(_(u"Comment"), blank=True)
     comment = SpliceTextField(_(u"Comment"), blank=True, null=True)
     # score = models.FloatField(_(u"Score"), choices=SCORE_CHOICES, default=3.0)
-    score = SpliceFloatField(_(u"Score"), choices=SCORE_CHOICES, default=3.0, null=True)
+    # score = SpliceFloatField(_(u"Score"), choices=SCORE_CHOICES, default=3.0, null=True)
+    # !!!SPLICE: Make the application take any score in float (for better synthesis evaluation)
+    score = SpliceFloatField(_(u"Score"), default=3.0, null=True)
+
     active = models.BooleanField(_(u"Active"), default=False)
 
     # creation_date = models.DateTimeField(_(u"Creation date"), auto_now_add=True)
